@@ -8,6 +8,7 @@ import math
 import typing
 
 import wpilib
+from navx import AHRS
 
 from commands2 import Subsystem
 from wpimath.filter import SlewRateLimiter
@@ -54,7 +55,7 @@ class DriveSubsystem(Subsystem):
         )
 
         # The gyro sensor
-        self.gyro = wpilib.ADIS16448_IMU()
+        self.gyro = AHRS.create_spi()
 
         # Slew rate filter variables for controlling lateral acceleration
         self.currentRotation = 0.0

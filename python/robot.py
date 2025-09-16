@@ -31,6 +31,8 @@ class MyRobot(commands2.TimedCommandRobot):
     def testInit(self) -> None:
         commands2.CommandScheduler.getInstance().cancelAll()
 
+    def testPeriodic(self):
+        RobotContainer.robotContainerTestPeriodic(self.container)
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

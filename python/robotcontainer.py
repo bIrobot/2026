@@ -10,6 +10,10 @@ import commands2
 import wpimath
 import wpilib
 
+import ntcore
+
+#from rev import SparkMax, SparkMaxConfig
+
 from commands2 import cmd
 from wpimath.controller import PIDController, ProfiledPIDControllerRadians
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
@@ -46,6 +50,14 @@ class RobotContainer:
         # Configure the button bindings
         self.configureButtonBindings()
 
+        #self.fingerMotor = SparkMax(14, SparkMax.MotorType.kBrushless)
+
+        # get the limelight table server
+        self.limelightTable = ntcore.NetworkTableInstance.getDefault().getTable("limelight")
+
+        # set the limelight led mode
+        self.limelightTable.getEntry("ledMode").setDouble(2)  # blink
+
         # Configure default commands
         self.robotDrive.setDefaultCommand(
             # The left stick controls translation of the robot.
@@ -61,12 +73,55 @@ class RobotContainer:
                     -wpimath.applyDeadband(
                         self.driverController.getRightX(), OIConstants.kDriveDeadband
                     ),
-                    True,
+                    False,
                     True,
                 ),
                 self.robotDrive,
             )
         )
+
+    def robotContainerTestPeriodic(self):
+        # stop the joystick from driving us (removeDefaultCommand does not work)
+        self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
+
+        if self.driverController.getAButtonPressed():
+            print("A has been pressed")
+            print("Gyro angle is ", self.robotDrive.getHeading())
+        if self.driverController.getAButtonReleased():
+            print("A has been released")
+
+        if self.driverController.getBButtonPressed():
+            print("B has been pressed")
+            # get the limelight apriltag vision results
+            tv = self.limelightTable.getEntry("tv").getDouble(-1000)
+            tx = self.limelightTable.getEntry("tx").getDouble(-1000)
+            ty = self.limelightTable.getEntry("ty").getDouble(-1000)
+            # when tv is 1, we see an apriltag!
+            print("tv = ", tv, "tx = ", tx, "; ty = ", ty)
+        if self.driverController.getBButtonReleased():
+            print("B has been released")
+
+        if self.driverController.getYButtonPressed():
+            print("Y has been pressed")
+            self.robotDrive.drive(0, 0, -0.1, False, True)
+            self.limelightTable.getEntry("ledMode").setDouble(3)  # on
+            #self.fingerMotor.setVoltage(0.0)
+        if self.driverController.getYButtonReleased():
+            print("Y has been released")
+            # stop turning
+            self.robotDrive.drive(0, 0, 0.0, False, True)
+            self.limelightTable.getEntry("ledMode").setDouble(1)  # off
+
+        if self.driverController.getXButtonPressed():
+            print("X has been pressed")
+            self.robotDrive.drive(0, 0, 0.1, False, True)
+            self.limelightTable.getEntry("ledMode").setDouble(3)  # on
+            #self.fingerMotor.setVoltage(-2.0)
+        if self.driverController.getXButtonReleased():
+            print("X has been released")
+            # stop turning
+            self.robotDrive.drive(0, 0, 0.0, False, True)
+            self.limelightTable.getEntry("ledMode").setDouble(1)  # off
 
     def configureButtonBindings(self) -> None:
         """
