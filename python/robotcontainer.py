@@ -58,6 +58,9 @@ class RobotContainer:
         # set the limelight led mode
         self.limelightTable.getEntry("ledMode").setDouble(2)  # blink
 
+        # count our periodic calls
+        self.ticks = 0
+
         # Configure default commands
         self.robotDrive.setDefaultCommand(
             # The left stick controls translation of the robot.
@@ -122,6 +125,11 @@ class RobotContainer:
             # stop turning
             self.robotDrive.drive(0, 0, 0.0, False, True)
             self.limelightTable.getEntry("ledMode").setDouble(1)  # off
+
+        # periodic code here always runs!
+        self.ticks = self.ticks+1
+        if self.ticks%50 == 0:
+            print(self.ticks/50, " seconds have passed")
 
     def configureButtonBindings(self) -> None:
         """
