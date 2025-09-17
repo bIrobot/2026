@@ -9,6 +9,7 @@ import math
 import commands2
 import wpimath
 import wpilib
+from wpilib import DriverStation
 
 import ntcore
 
@@ -84,8 +85,9 @@ class RobotContainer:
         )
 
     def robotContainerTestPeriodic(self):
-        # stop the joystick from driving us (removeDefaultCommand does not work)
-        self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
+        if DriverStation.isEnabled():
+            # stop the joystick from driving us (removeDefaultCommand does not work)
+            self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
 
         if self.driverController.getAButtonPressed():
             print("A has been pressed")
