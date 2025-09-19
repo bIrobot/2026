@@ -89,11 +89,42 @@ class RobotContainer:
             # stop the joystick from driving us (removeDefaultCommand does not work)
             self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
 
+        tv = self.limelightTable.getEntry("tv").getDouble(-1000)
+        tx = self.limelightTable.getEntry("tx").getDouble(-1000)
+        ty = self.limelightTable.getEntry("ty").getDouble(-1000)
+        ta = self.limelightTable.getEntry("ta").getDouble(-1000)
         if self.driverController.getAButtonPressed():
             print("A has been pressed")
             print("Gyro angle is ", self.robotDrive.getHeading())
+            self.robotDrive.drive(0, 0, -0.1, False, True)
         if self.driverController.getAButtonReleased():
             print("A has been released")
+            self.robotDrive.drive(0, 0, 0.0, False, True)
+
+
+
+        if tv!=1:
+            self.robotDrive.drive(0, 0, -0.1, False, True)  # we also need to test with 0.1 instead of -0.1
+
+        elif (tv == 1 and tx >= 2):
+            self.robotDrive.drive(0, 0, -0.1, False, True)
+
+        elif (tv ==1 and tx <= -2):
+            self.robotDrive.drive(0, 0, 0.1, False, True)
+
+        elif ta < 5:
+            self.robotDrive.drive(0.1, 0, 0, False, True)
+
+        else:
+            self.robotDrive.drive(0, 0, 0, False, True)
+
+        # fix -- make sure we stop when we approach the april tag at the end of the challenge
+
+        # todo -- when the april tag leaves our view from the left, we have to rotate to the left to find it.
+        #         when the april tag leaves our view from the right, we have to rotate to the right to find it.
+        #         to do this, we'll need a variable with the last "tx" value we saw when tv was 1!
+
+
 
         if self.driverController.getBButtonPressed():
             print("B has been pressed")
@@ -101,8 +132,9 @@ class RobotContainer:
             tv = self.limelightTable.getEntry("tv").getDouble(-1000)
             tx = self.limelightTable.getEntry("tx").getDouble(-1000)
             ty = self.limelightTable.getEntry("ty").getDouble(-1000)
+            ta = self.limelightTable.getEntry("ta").getDouble(-1000)
             # when tv is 1, we see an apriltag!
-            print("tv = ", tv, "tx = ", tx, "; ty = ", ty)
+            print("tv = ", tv, "tx = ", tx, "; ty = ", ty, "ta = ", ta)
         if self.driverController.getBButtonReleased():
             print("B has been released")
 
