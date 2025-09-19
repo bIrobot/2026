@@ -103,18 +103,23 @@ class RobotContainer:
 
 
 
+        # if we don't see the april tag at all...
         if tv!=1:
             self.robotDrive.drive(0, 0, -0.1, False, True)  # we also need to test with 0.1 instead of -0.1
 
+        # otherwise, if we see the april tag to our left...
         elif (tv == 1 and tx >= 2):
             self.robotDrive.drive(0, 0, -0.1, False, True)
 
+        # otherwise, if we see the april tag to our right...
         elif (tv ==1 and tx <= -2):
             self.robotDrive.drive(0, 0, 0.1, False, True)
 
+        # otherwise, if we see the april tag dead-ahead but it is too small...
         elif ta < 5:
             self.robotDrive.drive(0.1, 0, 0, False, True)
 
+        # otherwise, we have arrived!
         else:
             self.robotDrive.drive(0, 0, 0, False, True)
 
@@ -122,7 +127,7 @@ class RobotContainer:
 
         # todo -- when the april tag leaves our view from the left, we have to rotate to the left to find it.
         #         when the april tag leaves our view from the right, we have to rotate to the right to find it.
-        #         to do this, we'll need a variable with the last "tx" value we saw when tv was 1!
+        #         to do this, we'll need a member variable with the last "tx" value we saw when tv was 1!
 
 
 
