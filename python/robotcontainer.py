@@ -62,6 +62,8 @@ class RobotContainer:
         # count our periodic calls
         self.ticks = 0
 
+        self.lasttx = 0
+
         # Configure default commands
         self.robotDrive.setDefaultCommand(
             # The left stick controls translation of the robot.
@@ -105,23 +107,41 @@ class RobotContainer:
 
         # if we don't see the april tag at all...
         if tv!=1:
-            self.robotDrive.drive(0, 0, -0.1, False, True)  # we also need to test with 0.1 instead of -0.1
-
-        # otherwise, if we see the april tag to our left...
-        elif (tv == 1 and tx >= 2):
-            self.robotDrive.drive(0, 0, -0.1, False, True)
+            if self.lasttx < 0:
+                # turn left
+                self.robotDrive.drive(0, 0, 0.1, False, True)
+            else:
+                # turn right
+                self.robotDrive.drive(0, 0, -0.1, False, True)
+            return
 
         # otherwise, if we see the april tag to our right...
-        elif (tv ==1 and tx <= -2):
+        elif (tx >= 5):
+            # turn right
+            self.robotDrive.drive(0, 0, -0.1, False, True)
+
+        # otherwise, if we see the april tag to our left...
+        elif (tx <= -5):
+            # turn left
             self.robotDrive.drive(0, 0, 0.1, False, True)
 
         # otherwise, if we see the april tag dead-ahead but it is too small...
         elif ta < 5:
+            # drive forward
             self.robotDrive.drive(0.1, 0, 0, False, True)
 
         # otherwise, we have arrived!
         else:
+            # stop
             self.robotDrive.drive(0, 0, 0, False, True)
+
+        # remember where we last saw the april tag
+        self.lasttx = tx
+
+        # periodic code here always runs!
+        self.ticks = self.ticks+1
+        if self.ticks%50 == 0:
+            print("tx=", tx, "ta=", ta)
 
         # fix -- make sure we stop when we approach the april tag at the end of the challenge
 
@@ -165,10 +185,7 @@ class RobotContainer:
             self.robotDrive.drive(0, 0, 0.0, False, True)
             self.limelightTable.getEntry("ledMode").setDouble(1)  # off
 
-        # periodic code here always runs!
-        self.ticks = self.ticks+1
-        if self.ticks%50 == 0:
-            print(self.ticks/50, " seconds have passed")
+
 
     def configureButtonBindings(self) -> None:
         """
