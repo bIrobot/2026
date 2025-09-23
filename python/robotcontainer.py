@@ -90,6 +90,7 @@ class RobotContainer:
         if DriverStation.isEnabled():
             # stop the joystick from driving us (removeDefaultCommand does not work)
             self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
+            self.limelightTable.getEntry("ledMode").setDouble(3)  # on
 
         tv = self.limelightTable.getEntry("tv").getDouble(-1000)
         tx = self.limelightTable.getEntry("tx").getDouble(-1000)
@@ -137,6 +138,7 @@ class RobotContainer:
             # stop
             self.robotDrive.drive(0, 0, 0, False, True)
             self.fingerMotor.setVoltage(0)
+
         # remember where we last saw the april tag
         self.lasttx = tx
 
