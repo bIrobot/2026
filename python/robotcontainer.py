@@ -13,7 +13,7 @@ from wpilib import DriverStation
 
 import ntcore
 
-#from rev import SparkMax, SparkMaxConfig
+from rev import SparkMax, SparkMaxConfig
 
 from commands2 import cmd
 from wpimath.controller import PIDController, ProfiledPIDControllerRadians
@@ -51,7 +51,7 @@ class RobotContainer:
         # Configure the button bindings
         self.configureButtonBindings()
 
-        #self.fingerMotor = SparkMax(14, SparkMax.MotorType.kBrushless)
+        self.fingerMotor = SparkMax(14, SparkMax.MotorType.kBrushless)
 
         # get the limelight table server
         self.limelightTable = ntcore.NetworkTableInstance.getDefault().getTable("limelight")
@@ -110,31 +110,33 @@ class RobotContainer:
             if self.lasttx < 0:
                 # turn left
                 self.robotDrive.drive(0, 0, 0.1, False, True)
+                self.fingerMotor.setVoltage(-2.0)
             else:
                 # turn right
                 self.robotDrive.drive(0, 0, -0.1, False, True)
+                self.fingerMotor.setVoltage(-2.0)
             return
 
         # otherwise, if we see the april tag to our right...
         elif (tx >= 5):
             # turn right
             self.robotDrive.drive(0, 0, -0.1, False, True)
-
+            self.fingerMotor.setVoltage(-2.0)
         # otherwise, if we see the april tag to our left...
         elif (tx <= -5):
             # turn left
             self.robotDrive.drive(0, 0, 0.1, False, True)
-
+            self.fingerMotor.setVoltage(-2.0)
         # otherwise, if we see the april tag dead-ahead but it is too small...
         elif ta < 5:
             # drive forward
             self.robotDrive.drive(0.1, 0, 0, False, True)
-
+            self.fingerMotor.setVoltage(-2.0)
         # otherwise, we have arrived!
         else:
             # stop
             self.robotDrive.drive(0, 0, 0, False, True)
-
+            self.fingerMotor.setVoltage(0)
         # remember where we last saw the april tag
         self.lasttx = tx
 
