@@ -92,10 +92,6 @@ class RobotContainer:
             self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
             self.limelightTable.getEntry("ledMode").setDouble(3)  # on
 
-        tv = self.limelightTable.getEntry("tv").getDouble(-1000)
-        tx = self.limelightTable.getEntry("tx").getDouble(-1000)
-        ty = self.limelightTable.getEntry("ty").getDouble(-1000)
-        ta = self.limelightTable.getEntry("ta").getDouble(-1000)
         if self.driverController.getAButtonPressed():
             print("A has been pressed")
             print("Gyro angle is ", self.robotDrive.getHeading())
@@ -105,6 +101,10 @@ class RobotContainer:
             self.robotDrive.drive(0, 0, 0.0, False, True)
 
 
+        tv = self.limelightTable.getEntry("tv").getDouble(-1000)
+        tx = self.limelightTable.getEntry("tx").getDouble(-1000)
+        ty = self.limelightTable.getEntry("ty").getDouble(-1000)
+        ta = self.limelightTable.getEntry("ta").getDouble(-1000)
 
         # if we don't see the april tag at all...
         if tv!=1:
