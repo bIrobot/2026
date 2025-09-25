@@ -13,7 +13,7 @@ from wpilib import DriverStation
 
 import ntcore
 
-from rev import SparkMax, SparkMaxConfig
+from rev import ClosedLoopConfig, SparkBase, SparkBaseConfig, SparkMax, SparkMaxConfig
 
 from commands2 import cmd
 from wpimath.controller import PIDController, ProfiledPIDControllerRadians
@@ -29,7 +29,7 @@ from wpimath.controller import (
     ProfiledPIDControllerRadians,
 )
 
-from constants import AutoConstants, DriveConstants, OIConstants
+from constants import AutoConstants, DriveConstants, ModuleConstants, OIConstants
 from subsystems.drivesubsystem import DriveSubsystem
 
 
@@ -53,6 +53,16 @@ class RobotContainer:
 
         self.fingerMotor = SparkMax(14, SparkMax.MotorType.kBrushless)
 
+
+        self.wristMotor = SparkMax(13, SparkMax.MotorType.kBrushless)
+        self.wrist_config = SparkMaxConfig()
+        self.wrist_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        self.wrist_config.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
+        self.wristMotor.configure(self.wrist_config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters)
+        self.wristEncoder = self.wristMotor.getAbsoluteEncoder()
+        self.wristPidController = self.wristMotor.getClosedLoopController()
+
+
         # get the limelight table server
         self.limelightTable = ntcore.NetworkTableInstance.getDefault().getTable("limelight")
 
@@ -63,6 +73,7 @@ class RobotContainer:
         self.ticks = 0
 
         self.lasttx = 0
+        self.seeking = False
 
         # Configure default commands
         self.robotDrive.setDefaultCommand(
@@ -95,11 +106,38 @@ class RobotContainer:
         if self.driverController.getAButtonPressed():
             print("A has been pressed")
             print("Gyro angle is ", self.robotDrive.getHeading())
-            self.robotDrive.drive(0, 0, -0.1, False, True)
+            print("Wrist encoder is", self.wristEncoder.getPosition())
         if self.driverController.getAButtonReleased():
             print("A has been released")
-            self.robotDrive.drive(0, 0, 0.0, False, True)
 
+        if self.driverController.getBButtonPressed():
+            print("B has been pressed")
+            # get the limelight apriltag vision results
+            tv = self.limelightTable.getEntry("tv").getDouble(-1000)
+            tx = self.limelightTable.getEntry("tx").getDouble(-1000)
+            ty = self.limelightTable.getEntry("ty").getDouble(-1000)
+            ta = self.limelightTable.getEntry("ta").getDouble(-1000)
+            # when tv is 1, we see an apriltag!
+            print("tv = ", tv, "tx = ", tx, "; ty = ", ty, "ta = ", ta)
+            self.seeking = True
+        if self.driverController.getBButtonReleased():
+            print("B has been released")
+
+        if self.driverController.getYButtonPressed():
+            print("Y has been pressed")
+            self.wristPidController.setReference(0.3, SparkMax.ControlType.kPosition)
+        if self.driverController.getYButtonReleased():
+            print("Y has been released")
+
+        if self.driverController.getXButtonPressed():
+            print("X has been pressed")
+            self.wristPidController.setReference(0.4, SparkMax.ControlType.kPosition)
+        if self.driverController.getXButtonReleased():
+            print("X has been released")
+
+
+        if self.seeking != True:
+            return
 
         tv = self.limelightTable.getEntry("tv").getDouble(-1000)
         tx = self.limelightTable.getEntry("tx").getDouble(-1000)
@@ -152,42 +190,6 @@ class RobotContainer:
         # todo -- when the april tag leaves our view from the left, we have to rotate to the left to find it.
         #         when the april tag leaves our view from the right, we have to rotate to the right to find it.
         #         to do this, we'll need a member variable with the last "tx" value we saw when tv was 1!
-
-
-
-        if self.driverController.getBButtonPressed():
-            print("B has been pressed")
-            # get the limelight apriltag vision results
-            tv = self.limelightTable.getEntry("tv").getDouble(-1000)
-            tx = self.limelightTable.getEntry("tx").getDouble(-1000)
-            ty = self.limelightTable.getEntry("ty").getDouble(-1000)
-            ta = self.limelightTable.getEntry("ta").getDouble(-1000)
-            # when tv is 1, we see an apriltag!
-            print("tv = ", tv, "tx = ", tx, "; ty = ", ty, "ta = ", ta)
-        if self.driverController.getBButtonReleased():
-            print("B has been released")
-
-        if self.driverController.getYButtonPressed():
-            print("Y has been pressed")
-            self.robotDrive.drive(0, 0, -0.1, False, True)
-            self.limelightTable.getEntry("ledMode").setDouble(3)  # on
-            #self.fingerMotor.setVoltage(0.0)
-        if self.driverController.getYButtonReleased():
-            print("Y has been released")
-            # stop turning
-            self.robotDrive.drive(0, 0, 0.0, False, True)
-            self.limelightTable.getEntry("ledMode").setDouble(1)  # off
-
-        if self.driverController.getXButtonPressed():
-            print("X has been pressed")
-            self.robotDrive.drive(0, 0, 0.1, False, True)
-            self.limelightTable.getEntry("ledMode").setDouble(3)  # on
-            #self.fingerMotor.setVoltage(-2.0)
-        if self.driverController.getXButtonReleased():
-            print("X has been released")
-            # stop turning
-            self.robotDrive.drive(0, 0, 0.0, False, True)
-            self.limelightTable.getEntry("ledMode").setDouble(1)  # off
 
 
 
