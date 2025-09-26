@@ -69,7 +69,7 @@ class DriveSubsystem(Subsystem):
         # Odometry class for tracking robot pose
         self.odometry = SwerveDrive4Odometry(
             DriveConstants.kDriveKinematics,
-            Rotation2d.fromDegrees(self.gyro.getAngle()),
+            Rotation2d.fromDegrees(self.gyro.getAngle()) * (-1.0 if DriveConstants.kGyroReversed else 1.0),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -81,7 +81,7 @@ class DriveSubsystem(Subsystem):
     def periodic(self) -> None:
         # Update the odometry in the periodic block
         self.odometry.update(
-            Rotation2d.fromDegrees(self.gyro.getAngle()),
+            Rotation2d.fromDegrees(self.gyro.getAngle()) * (-1.0 if DriveConstants.kGyroReversed else 1.0),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -104,7 +104,7 @@ class DriveSubsystem(Subsystem):
 
         """
         self.odometry.resetPosition(
-            Rotation2d.fromDegrees(self.gyro.getAngle()),
+            Rotation2d.fromDegrees(self.gyro.getAngle()) * (-1.0 if DriveConstants.kGyroReversed else 1.0),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -208,7 +208,7 @@ class DriveSubsystem(Subsystem):
                 xSpeedDelivered,
                 ySpeedDelivered,
                 rotDelivered,
-                Rotation2d.fromDegrees(self.gyro.getAngle()),
+                Rotation2d.fromDegrees(self.gyro.getAngle()) * (-1.0 if DriveConstants.kGyroReversed else 1.0),
             )
             if fieldRelative
             else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
@@ -264,7 +264,7 @@ class DriveSubsystem(Subsystem):
 
         :returns: the robot's heading in degrees, from -180 to 180
         """
-        return Rotation2d.fromDegrees(self.gyro.getAngle()).degrees()
+        return Rotation2d.fromDegrees(self.gyro.getAngle()).degrees() * (-1.0 if DriveConstants.kGyroReversed else 1.0)
 
     def getTurnRate(self) -> float:
         """Returns the turn rate of the robot.
