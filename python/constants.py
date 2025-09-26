@@ -64,7 +64,7 @@ class DriveConstants:
     kFrontRightTurningCanId = 4
     kRearRightTurningCanId = 8
 
-    kGyroReversed = False
+    kGyroReversed = True
 
 
 class ModuleConstants:

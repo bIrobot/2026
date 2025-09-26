@@ -57,6 +57,8 @@ class RobotContainer:
         self.wristMotor = SparkMax(13, SparkMax.MotorType.kBrushless)
         self.wrist_config = SparkMaxConfig()
         self.wrist_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
+        self.wrist_config.closedLoop.P(ModuleConstants.kTurningP)
+        self.wrist_config.absoluteEncoder.inverted(True)
         self.wrist_config.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
         self.wristMotor.configure(self.wrist_config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters)
         self.wristEncoder = self.wristMotor.getAbsoluteEncoder()
@@ -125,7 +127,7 @@ class RobotContainer:
 
         if self.driverController.getYButtonPressed():
             print("Y has been pressed")
-            self.wristPidController.setReference(0.3, SparkMax.ControlType.kPosition)
+            self.wristPidController.setReference(0.6, SparkMax.ControlType.kPosition)
         if self.driverController.getYButtonReleased():
             print("Y has been released")
 
