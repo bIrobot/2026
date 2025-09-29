@@ -60,7 +60,7 @@ class RobotContainer:
         self.wrist_config.closedLoop.P(ModuleConstants.kTurningP)
         self.wrist_config.absoluteEncoder.inverted(True)
         self.wrist_config.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
-        self.wristMotor.configure(self.wrist_config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters)
+        self.wristMotor.configure(self.wrist_config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
         self.wristEncoder = self.wristMotor.getAbsoluteEncoder()
         self.wristPidController = self.wristMotor.getClosedLoopController()
 
