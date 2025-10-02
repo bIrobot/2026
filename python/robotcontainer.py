@@ -57,7 +57,7 @@ class RobotContainer:
         self.wristMotor = SparkMax(13, SparkMax.MotorType.kBrushless)
         self.wrist_config = SparkMaxConfig()
         self.wrist_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
-        self.wrist_config.closedLoop.P(ModuleConstants.kTurningP)
+        self.wrist_config.closedLoop.P(1)
         self.wrist_config.absoluteEncoder.inverted(True)
         self.wrist_config.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
         self.wristMotor.configure(self.wrist_config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
