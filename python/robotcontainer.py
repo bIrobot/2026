@@ -57,13 +57,31 @@ class RobotContainer:
         self.wristMotor = SparkMax(13, SparkMax.MotorType.kBrushless)
         self.wrist_config = SparkMaxConfig()
         self.wrist_config.setIdleMode(SparkBaseConfig.IdleMode.kCoast)
-        self.wrist_config.closedLoop.P(1)
+        self.wrist_config.closedLoop.P(10)
         self.wrist_config.absoluteEncoder.inverted(True)
         self.wrist_config.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
         self.wristMotor.configure(self.wrist_config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
+
         self.wristEncoder = self.wristMotor.getAbsoluteEncoder()
         self.wristPidController = self.wristMotor.getClosedLoopController()
 
+        self.leftArmMotor = SparkMax(11, SparkMax.MotorType.kBrushless)
+        self.rightArmMotor = SparkMax(12, SparkMax.MotorType.kBrushless)
+
+        self.leftArmConfig = SparkMaxConfig()
+        self.leftArmConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
+        self.leftArmConfig.closedLoop.outputRange(-1, 1)
+        self.leftArmConfig.closedLoop.P(1).I(0).D(0)
+        self.leftArmConfig.inverted(True)
+        self.leftArmMotor.configure(self.leftArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
+
+        self.rightArmConfig = SparkMaxConfig()
+        self.rightArmConfig.inverted(True)
+        self.rightArmConfig.follow(11, True)
+        self.rightArmMotor.configure(self.rightArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
+
+        self.armEncoder = self.leftArmMotor.getAbsoluteEncoder()
+        self.armPidController = self.leftArmMotor.getClosedLoopController()
 
         # get the limelight table server
         self.limelightTable = ntcore.NetworkTableInstance.getDefault().getTable("limelight")
@@ -99,16 +117,25 @@ class RobotContainer:
             )
         )
 
+
+
     def robotContainerTestPeriodic(self):
         if DriverStation.isEnabled():
             # stop the joystick from driving us (removeDefaultCommand does not work)
             self.robotDrive.setDefaultCommand(commands2.RunCommand(lambda: None, self.robotDrive))
             self.limelightTable.getEntry("ledMode").setDouble(3)  # on
 
+        # periodic code here always runs!
+        self.ticks = self.ticks+1
+        if self.ticks%50 == 0:
+            pass
+
         if self.driverController.getAButtonPressed():
             print("A has been pressed")
             print("Gyro angle is ", self.robotDrive.getHeading())
             print("Wrist encoder is", self.wristEncoder.getPosition())
+            print("arm encoder is", self.armEncoder.getPosition())
+            self.armPidController.setReference(0.15, SparkMax.ControlType.kPosition)
         if self.driverController.getAButtonReleased():
             print("A has been released")
 
@@ -136,7 +163,6 @@ class RobotContainer:
             self.wristPidController.setReference(0.4, SparkMax.ControlType.kPosition)
         if self.driverController.getXButtonReleased():
             print("X has been released")
-
 
         if self.seeking != True:
             return
@@ -169,11 +195,22 @@ class RobotContainer:
             self.robotDrive.drive(0, 0, 0.1, False, True)
             self.fingerMotor.setVoltage(-2.0)
         # otherwise, if we see the april tag dead-ahead but it is too small...
+        elif ta < 1:
+            #drive forward faster
+            self.robotDrive.drive(0.2, 0, 0, False, True)
+            self.fingerMotor.setVoltage(-2.0)
+
         elif ta < 5:
             # drive forward
             self.robotDrive.drive(0.1, 0, 0, False, True)
             self.fingerMotor.setVoltage(-2.0)
         # otherwise, we have arrived!
+
+        elif ta > 7:
+            #drive backwards
+            self.robotDrive.drive(-0.1, 0, 0, False, True)
+            self.fingerMotor.setVoltage(-2.0)
+
         else:
             # stop
             self.robotDrive.drive(0, 0, 0, False, True)
@@ -181,17 +218,6 @@ class RobotContainer:
 
         # remember where we last saw the april tag
         self.lasttx = tx
-
-        # periodic code here always runs!
-        self.ticks = self.ticks+1
-        if self.ticks%50 == 0:
-            print("tx=", tx, "ta=", ta)
-
-        # fix -- make sure we stop when we approach the april tag at the end of the challenge
-
-        # todo -- when the april tag leaves our view from the left, we have to rotate to the left to find it.
-        #         when the april tag leaves our view from the right, we have to rotate to the right to find it.
-        #         to do this, we'll need a member variable with the last "tx" value we saw when tv was 1!
 
 
 
