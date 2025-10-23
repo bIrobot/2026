@@ -20,6 +20,11 @@ from wpimath.kinematics import (
     SwerveDrive4Odometry,
 )
 
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import RobotConfig, PIDConstants
+from wpilib import DriverStation
+
 from constants import DriveConstants
 import swerveutils
 from .maxswervemodule import MAXSwerveModule
@@ -78,6 +83,47 @@ class DriveSubsystem(Subsystem):
             ),
         )
 
+        config = RobotConfig.fromGUISettings()
+
+        try:
+            AutoBuilder.configure(
+                self.getPose,
+                self.resetOdometry,
+                self.getRobotRelativeSpeeds,
+                lambda speeds, feedforwards: self.driveRobotRelative(speeds),
+                PPHolonomicDriveController(
+                    PIDConstants(5.0, 0.0, 0.0),
+                    PIDConstants(5.0, 0.0, 0.0)
+                ),
+                config,
+                self.shouldFlipPath,
+                self
+            )
+        except Exception as e:
+            print(f"############################### An error occurred: {e}")
+
+    def shouldFlipPath(self):
+        return DriverStation.getAlliance() == DriverStation.Alliance.kRed
+
+    def getRobotRelativeSpeeds(self) -> ChassisSpeeds:
+        return DriveConstants.kDriveKinematics.toChassisSpeeds(
+                [
+                    self.frontLeft.getState(),
+                    self.frontRight.getState(),
+                    self.rearLeft.getState(),
+                    self.rearRight.getState()
+                ]
+            )
+
+    def driveRobotRelative(self, speeds : ChassisSpeeds):
+        self.drive(
+            speeds.vx,
+            speeds.vy,
+            speeds.omega,
+            False,
+            False
+        )
+
     def periodic(self) -> None:
         # Update the odometry in the periodic block
         self.odometry.update(
@@ -113,7 +159,7 @@ class DriveSubsystem(Subsystem):
             ),
             pose,
         )
-
+    
     def drive(
         self,
         xSpeed: float,

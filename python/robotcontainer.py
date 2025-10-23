@@ -7,9 +7,11 @@
 import math
 
 import commands2
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.path import PathPlannerPath
 import wpimath
 import wpilib
-from wpilib import DriverStation
+from wpilib import DriverStation, SmartDashboard
 
 import ntcore
 
@@ -71,7 +73,7 @@ class RobotContainer:
         self.leftArmConfig = SparkMaxConfig()
         self.leftArmConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
         self.leftArmConfig.closedLoop.outputRange(-1, 1)
-        self.leftArmConfig.closedLoop.P(1).I(0).D(0)
+        self.leftArmConfig.closedLoop.P(10).I(0).D(0)
         self.leftArmConfig.inverted(True)
         self.leftArmMotor.configure(self.leftArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
 
@@ -87,7 +89,7 @@ class RobotContainer:
         self.limelightTable = ntcore.NetworkTableInstance.getDefault().getTable("limelight")
 
         # set the limelight led mode
-        self.limelightTable.getEntry("ledMode").setDouble(2)  # blink
+        self.limelightTable.getEntry("ledMode").setDouble(3)  # on
 
         # count our periodic calls
         self.ticks = 0
@@ -116,6 +118,14 @@ class RobotContainer:
                 self.robotDrive,
             )
         )
+
+        # Build an auto chooser. This will use Commands.none() as the default option.
+        self.autoChooser = AutoBuilder.buildAutoChooser()
+
+        # Another option that allows you to specify the default auto by its name
+        # self.autoChooser = AutoBuilder.buildAutoChooser("My Default Auto")
+
+        SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
 
 
@@ -237,59 +247,4 @@ class RobotContainer:
 
         :returns: the command to run in autonomous
         """
-        # Create config for trajectory
-        config = TrajectoryConfig(
-            AutoConstants.kMaxSpeedMetersPerSecond,
-            AutoConstants.kMaxAccelerationMetersPerSecondSquared,
-        )
-        # Add kinematics to ensure max speed is actually obeyed
-        config.setKinematics(DriveConstants.kDriveKinematics)
-
-        # An example trajectory to follow. All units in meters.
-        exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-            # Start at the origin facing the +X direction
-            Pose2d(0, 0, Rotation2d(0)),
-            # Pass through these two interior waypoints, making an 's' curve path
-            [Translation2d(1, 1), Translation2d(2, -1)],
-            # End 3 meters straight ahead of where we started, facing forward
-            Pose2d(3, 0, Rotation2d(0)),
-            config,
-        )
-
-        # Constraint for the motion profiled robot angle controller
-        kThetaControllerConstraints = TrapezoidProfileRadians.Constraints(
-            AutoConstants.kMaxAngularSpeedRadiansPerSecond,
-            AutoConstants.kMaxAngularSpeedRadiansPerSecondSquared,
-        )
-
-        kPXController = PIDController(1.0, 0.0, 0.0)
-        kPYController = PIDController(1.0, 0.0, 0.0)
-        kPThetaController = ProfiledPIDControllerRadians(
-            1.0, 0.0, 0.0, kThetaControllerConstraints
-        )
-        kPThetaController.enableContinuousInput(-math.pi, math.pi)
-
-        kPIDController = HolonomicDriveController(
-            kPXController, kPYController, kPThetaController
-        )
-
-        swerveControllerCommand = commands2.SwerveControllerCommand(
-            exampleTrajectory,
-            self.robotDrive.getPose,  # Functional interface to feed supplier
-            DriveConstants.kDriveKinematics,
-            # Position controllers
-            kPIDController,
-            self.robotDrive.setModuleStates,
-            (self.robotDrive,),
-        )
-
-        # Reset odometry to the starting pose of the trajectory.
-        self.robotDrive.resetOdometry(exampleTrajectory.initialPose())
-
-        # Run path following command, then stop at the end.
-        return swerveControllerCommand.andThen(
-            cmd.run(
-                lambda: self.robotDrive.drive(0, 0, 0, False, False),
-                self.robotDrive,
-            )
-        )
+        return self.autoChooser.getSelected()
