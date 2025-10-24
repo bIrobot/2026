@@ -117,9 +117,9 @@ class DriveSubsystem(Subsystem):
 
     def driveRobotRelative(self, speeds : ChassisSpeeds):
         self.drive(
-            speeds.vx,
-            speeds.vy,
-            speeds.omega,
+            speeds.vx/DriveConstants.kMaxSpeedMetersPerSecond,
+            speeds.vy/DriveConstants.kMaxSpeedMetersPerSecond,
+            speeds.omega/DriveConstants.kMaxAngularSpeed,
             False,
             False
         )
