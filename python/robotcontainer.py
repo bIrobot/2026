@@ -128,6 +128,19 @@ class RobotContainer:
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
 
+    def robotContainerTeleopPeriodic(self):
+        if self.driverController.getAButtonPressed():
+            print("A has been pressed")
+            print("Gyro angle is ", self.robotDrive.getHeading())
+            print("Wrist encoder is", self.wristEncoder.getPosition())
+            print("arm encoder is", self.armEncoder.getPosition())
+        if self.driverController.getAButtonReleased():
+            print("A has been released")
+
+        if self.driverController.getBButtonPressed():
+            print("B has been pressed")
+            self.robotDrive.zeroHeading()
+
 
     def robotContainerTestPeriodic(self):
         if DriverStation.isEnabled():

@@ -28,6 +28,9 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
 
+    def teleopPeriodic(self):
+        RobotContainer.robotContainerTeleopPeriodic(self.container)
+
     def testInit(self) -> None:
         commands2.CommandScheduler.getInstance().cancelAll()
 
